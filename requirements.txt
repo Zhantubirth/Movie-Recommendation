@@ -1,0 +1,9 @@
+fastapi==0.115.6
+uvicorn==0.34.0
+peewee==3.17.8
+pymysql==1.1.1
+mysql-connector-python==9.1.0
+pydantic==2.10.4
+pandas==2.2.3
+numpy==2.2.1
+scikit-learn==1.6.1
