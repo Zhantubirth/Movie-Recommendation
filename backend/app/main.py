@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 # 创建 FastAPI 应用实例
 app = FastAPI(
@@ -27,8 +28,17 @@ def root():
 def health():
     return {"status": "ok"}
 
-from .routers import user, movie, rating
+from backend.app.routers import user, movie, rating,recommend
 
 app.include_router(user.router)
 app.include_router(movie.router)
 app.include_router(rating.router)
+app.include_router(recommend.router)
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "backend.app.main:app",
+        host="127.0.0.1",
+        port=8000,
+        reload=True
+    )
