@@ -37,5 +37,5 @@ class Rating(BaseModel):
     class Meta:
         table_name = 'rating'
         indexes = (
-            (('user_id', 'movie_id'), True),   # 联合唯一索引
+            (('user_id', 'movie_id'), True),   # 联合唯一索引，保证一个用户对一部电影只能有一个评分，防止重复数据
         )

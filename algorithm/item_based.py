@@ -17,9 +17,9 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
     返回:
         list: [{"movie_id": 1, "title": "电影名", "predicted_rating": 4.8, "reason": "..."}, ...]
     """
-    # 1. 如果没有评分数据，返回冷启动推荐
+    # 1. 如果没有评分数据，返回冷启动推荐（排除已评分电影）
     if not user_ratings:
-        return cold_start_recommend(top_n)
+        return cold_start_recommend(top_n, exclude_movies=set())
 
     # 2. 获取数据
     rating_matrix, user_ids, movie_ids = get_rating_matrix()
@@ -33,16 +33,18 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
                     if mid in movie_to_idx]
 
     if not rated_movies:
-        return cold_start_recommend(top_n)
+        return cold_start_recommend(top_n, exclude_movies=set(user_ratings.keys()))
 
-    # 5. 为每个已评分电影，找相似的电影
-    scores = {}
+    # 5. 为每个已评分电影，找相似的电影（使用加权平均，而非简单累加）
+    scores = {}      # 存储加权评分和
+    sim_sums = {}    # 存储相似度总和
 
     for rated_movie_id, rating in rated_movies:
         movie_idx = movie_to_idx[rated_movie_id]
         similarities = item_similarity[movie_idx]
 
         for other_idx, other_movie_id in enumerate(movie_id_list):
+            # 跳过自身和已评分的电影
             if other_movie_id == rated_movie_id:
                 continue
             if other_movie_id in user_ratings:
@@ -50,29 +52,75 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
 
             sim = similarities[other_idx]
             if sim > 0:
-                score = rating * sim
-                if other_movie_id not in scores:
-                    scores[other_movie_id] = 0
-                scores[other_movie_id] += score
+                # 累加加权评分和相似度
+                scores[other_movie_id] = scores.get(other_movie_id, 0) + sim * rating
+                sim_sums[other_movie_id] = sim_sums.get(other_movie_id, 0) + sim
 
-    # 6. 如果没有相似电影，返回热门推荐
-    if not scores:
-        return cold_start_recommend(top_n)
+    # 6. 计算最终预测评分（加权平均）
+    final_scores = {}
+    for movie_id, weighted_sum in scores.items():
+        if sim_sums[movie_id] > 0:
+            # 预测评分范围与原始评分一致（1-10）
+            final_scores[movie_id] = weighted_sum / sim_sums[movie_id]
 
-    # 7. 按总分排序
-    sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:top_n]
+    # 7. 如果没有相似电影，返回热门推荐
+    if not final_scores:
+        return cold_start_recommend(top_n, exclude_movies=set(user_ratings.keys()))
 
-    # 8. 构建返回结果
+    # 8. 按预测评分排序
+    sorted_movies = sorted(final_scores.items(), key=lambda x: x[1], reverse=True)
+
+    # 9. 如果推荐数量不足，补充热门推荐（排除已评分和已预测的电影）
+    if len(sorted_movies) < top_n:
+        # 获取已排除的电影集合（已评分的 + 已预测的）
+        excluded_movies = set(user_ratings.keys()) | set(final_scores.keys())
+        # 请求更多候选（top_n * 3），确保有足够补充
+        hot_candidates = cold_start_recommend(top_n * 3, exclude_movies=excluded_movies)
+
+        for hot_movie in hot_candidates:
+            movie_id = hot_movie["movie_id"]
+            if movie_id not in final_scores and movie_id not in user_ratings:
+                # 给一个较低的临时分数，排在预测结果后面
+                # 使用已有预测的最小值减1，如果没有预测则设为0
+                temp_score = min(final_scores.values()) - 1.0 if final_scores else 0.0
+                sorted_movies.append((movie_id, temp_score))
+            if len(sorted_movies) >= top_n:
+                break
+
+        # 重新按分数排序（确保预测评分高的在前，补充的在后面）
+        sorted_movies.sort(key=lambda x: x[1], reverse=True)
+
+    # 10. 取最终的 Top N
+    sorted_movies = sorted_movies[:top_n]
+
+    # 11. 构建返回结果（确保没有重复）
     result = []
+    seen_movie_ids = set()
+
     for movie_id, score in sorted_movies:
+        # 去重检查
+        if movie_id in seen_movie_ids:
+            continue
+        seen_movie_ids.add(movie_id)
+
+        # 再次确认不是已评分的电影
+        if movie_id in user_ratings:
+            continue
+
         movie = Movie.get_or_none(Movie.id == movie_id)
-        # 归一化到 1-10 范围（假设最大可能分数是 10 * 10 = 100）
-        normalized_score = min(score / 10, 10.0)
+
+        # 预测评分已经在 1-10 范围内，直接使用
+        # 但确保在有效范围内
+        if score > 0:
+            predicted_rating = min(max(round(score, 1), 1.0), 10.0)
+        else:
+            predicted_rating = None
+
         result.append({
             "movie_id": movie_id,
-            "title": movie.title if movie else "未知",
-            "predicted_rating": round(normalized_score, 1),
-            "reason": "与您评分过的电影相似"
+            "title": movie.title if movie else "Unknown",
+            "predicted_rating": predicted_rating,
+            "reason": "Similar to movies you have rated"
         })
 
     return result

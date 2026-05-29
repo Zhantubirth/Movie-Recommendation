@@ -1,52 +1,74 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel,Field
-from ..models import Rating, Movie
+from ..models import Rating
+from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/ratings", tags=["评分"])
-
+router = APIRouter(prefix="/api/ratings", tags=["Ratings"])
 
 class RatingCreate(BaseModel):
-    user_id: int = Field(..., gt=0)
-    movie_id: int = Field(..., gt=0)
-    rating: float = Field(..., ge=1.0, le=10.0, description="评分范围 1.0 ~ 10.0")
+    user_id: int
+    movie_id: int
+    rating: float
 
+class RatingDelete(BaseModel):
+    user_id: int
+    movie_id: int
 
 @router.post("")
-def submit_rating(rating: RatingCreate):
-    # Pydantic 已经校验了范围，这行可以删除或保留作为双重保障
-    if rating.rating < 1.0 or rating.rating > 10.0:
-        raise HTTPException(status_code=400, detail="评分必须在 1.0-10.0 之间")
-
-    # 验证电影是否存在
+def create_rating(rating_data: RatingCreate):
     try:
-        Movie.get_by_id(rating.movie_id)
-    except Movie.DoesNotExist:
-        raise HTTPException(status_code=404, detail="电影不存在")
-
-    # 插入或更新评分 (ON CONFLICT UPDATE)
-    # Peewee 的 replace 或 get_or_create 实现 upsert
-    r, created = Rating.get_or_create(
-        user_id=rating.user_id,
-        movie_id=rating.movie_id,
-        defaults={'rating': rating.rating}
-    )
-    if not created:
-        r.rating = rating.rating
-        r.save()
-
-    return {"code": 200, "message": "评分成功"}
-
+        # Validate rating range
+        if rating_data.rating < 1.0 or rating_data.rating > 10.0:
+            raise HTTPException(status_code=400, detail="Rating must be between 1.0 and 10.0")
+        
+        # Create or update rating
+        rating, created = Rating.get_or_create(
+            user_id=rating_data.user_id,
+            movie_id=rating_data.movie_id,
+            defaults={"rating": rating_data.rating}
+        )
+        
+        if not created:
+            rating.rating = rating_data.rating
+            rating.save()
+        
+        return {
+            "code": 200,
+            "message": "Rating created" if created else "Rating updated",
+            "rating": float(rating.rating)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save rating: {str(e)}")
 
 @router.get("/{user_id}")
 def get_user_ratings(user_id: int):
-    ratings = Rating.select().where(Rating.user_id == user_id).order_by(Rating.created_at.desc())
-    result = []
-    for r in ratings:
-        movie = Movie.get_or_none(Movie.id == r.movie_id)
-        result.append({
-            "movie_id": r.movie_id,
-            "title": movie.title if movie else "未知",
-            "rating": float(r.rating),
-            "created_at": r.created_at.isoformat()
-        })
-    return result
+    try:
+        ratings = Rating.select().where(Rating.user_id == user_id)
+        return [
+            {
+                "id": r.id,
+                "user_id": r.user_id,
+                "movie_id": r.movie_id,
+                "rating": float(r.rating),
+                "created_at": r.created_at.isoformat()
+            }
+            for r in ratings
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get ratings: {str(e)}")
+
+@router.delete("/{user_id}/{movie_id}")
+def delete_rating(user_id: int, movie_id: int):
+    try:
+        deleted = Rating.delete().where(
+            (Rating.user_id == user_id) & 
+            (Rating.movie_id == movie_id)
+        ).execute()
+        
+        if deleted > 0:
+            return {"code": 200, "message": "Rating removed"}
+        else:
+            return {"code": 404, "message": "Rating not found"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete rating: {str(e)}")

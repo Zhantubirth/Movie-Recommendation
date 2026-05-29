@@ -3,7 +3,7 @@ User-based 协同过滤算法
 """
 import numpy as np
 from .utils import get_rating_matrix, get_user_similarity, cold_start_recommend
-from backend.app.models import Movie
+from backend.app.models import Movie, Rating
 
 
 def recommend(user_id: int, top_n: int = 10) -> list:
@@ -38,14 +38,23 @@ def recommend(user_id: int, top_n: int = 10) -> list:
 
     similar_users_idx = np.argsort(similarities)[::-1][1:K + 1]
 
-    # 6. 获取当前用户已评分的电影
+    # 6. 获取当前用户已评分的电影（双重保障：从数据库和矩阵都获取）
+    # 从数据库获取（最新数据）
+    user_ratings_db = Rating.select().where(Rating.user_id == user_id)
+    rated_movies_db = set([r.movie_id for r in user_ratings_db])
+    
+    # 从评分矩阵获取
     user_rated_mask = rating_matrix.iloc[user_idx] > 0
-    rated_movies = set(rating_matrix.columns[user_rated_mask].tolist())
+    rated_movies_matrix = set(rating_matrix.columns[user_rated_mask].tolist())
+    
+    # 合并两个集合（取并集）
+    rated_movies = rated_movies_db.union(rated_movies_matrix)
 
     # 7. 计算每个未评分电影的预测评分
     predictions = {}
 
     for movie_idx, movie_id in enumerate(movie_ids):
+        # 过滤已评分的电影
         if movie_id in rated_movies:
             continue
 
@@ -67,18 +76,46 @@ def recommend(user_id: int, top_n: int = 10) -> list:
     if not predictions:
         return cold_start_recommend(top_n)
 
-    # 9. 按预测评分排序，取 Top N
-    sorted_predictions = sorted(predictions.items(), key=lambda x: x[1], reverse=True)[:top_n]
+        # 9. 按预测评分排序，取 Top N
+    sorted_predictions = sorted(predictions.items(), key=lambda x: x[1], reverse=True)
 
-    # 10. 构建返回结果
+    # 如果预测数量不足，补充热门电影（排除已评分的）
+    if len(sorted_predictions) < top_n:
+        # 从热门推荐中获取更多候选（请求 top_n*2 个，再过滤）
+        hot_candidates = cold_start_recommend(top_n * 2, exclude_movies=rated_movies)
+        for hot_movie in hot_candidates:
+            movie_id = hot_movie["movie_id"]
+            if movie_id not in predictions and movie_id not in rated_movies:
+                # 给一个临时评分（比预测的最低分略低，保证排在最后）
+                temp_score = min(predictions.values()) - 1.0 if predictions else 0.0
+                sorted_predictions.append((movie_id, temp_score))
+            if len(sorted_predictions) >= top_n:
+                break
+        # 重新排序（补充的热门电影排在后面）
+        sorted_predictions.sort(key=lambda x: x[1], reverse=True)
+
+    sorted_predictions = sorted_predictions[:top_n]
+
+    # 10. 构建返回结果（确保没有重复）
     result = []
+    seen_movie_ids = set()
+    
     for movie_id, pred_rating in sorted_predictions:
+        # 去重检查
+        if movie_id in seen_movie_ids:
+            continue
+        seen_movie_ids.add(movie_id)
+        
+        # 再次确认不是已评分的电影
+        if movie_id in rated_movies:
+            continue
+            
         movie = Movie.get_or_none(Movie.id == movie_id)
         result.append({
             "movie_id": movie_id,
-            "title": movie.title if movie else "未知",
-            "predicted_rating": round(min(pred_rating, 10.0), 1),  # 限制最大10分
-            "reason": "其他品味相似的用户也喜欢这部电影"
+            "title": movie.title if movie else "Unknown",
+            "predicted_rating": round(min(pred_rating, 10.0), 1) if pred_rating else None,
+            "reason": "Other users with similar tastes also liked this movie"
         })
 
     return result
