@@ -65,7 +65,7 @@ def recommend(user_id: int, top_n: int = 10) -> list:
             sim = similarities[sim_user_idx]
             rating = rating_matrix.iloc[sim_user_idx, movie_idx]
 
-            if rating > 0:
+            if sim > 0 and rating > 0:
                 total_sim += sim
                 weighted_rating += sim * rating
 
@@ -114,7 +114,7 @@ def recommend(user_id: int, top_n: int = 10) -> list:
         result.append({
             "movie_id": movie_id,
             "title": movie.title if movie else "Unknown",
-            "predicted_rating": round(min(pred_rating, 10.0), 1) if pred_rating else None,
+            "predicted_rating": round(min(max(pred_rating, 1.0), 10.0), 1) if pred_rating and pred_rating > 0 else None,
             "reason": "Other users with similar tastes also liked this movie"
         })
 

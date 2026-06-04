@@ -133,6 +133,9 @@ def pearson_similarity(matrix):
                 continue
             vec_i = matrix[i][mask]
             vec_j = matrix[j][mask]
+            if np.std(vec_i) == 0 or np.std(vec_j) == 0:
+                sim[i, j] = 0.0
+                continue
             # 计算皮尔逊相关系数
             corr = np.corrcoef(vec_i, vec_j)[0, 1]
             sim[i, j] = corr if not np.isnan(corr) else 0.0

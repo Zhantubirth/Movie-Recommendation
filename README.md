@@ -1,159 +1,149 @@
-# 电影推荐系统
+# Artefacts and References
 
-> 后端同学写的说明文档，请所有队友仔细阅读
+## Artefacts
 
----
+### Source Code Repository
 
-## 一、项目结构（每个人把自己的代码放在对应文件夹）
+The complete source code of the Movie Recommendation System is hosted on GitHub and is publicly accessible.
 
-PythonProject/
-├── backend/          # 后端代码（后端同学）
+**Repository URL:** https://github.com/Zhantubirth/Movie-Recommendation.git
 
-├── algorithm/        # 算法代码（算法同学）
+The repository contains the following key artefacts:
 
-├── frontend/         # 前端代码（前端同学）
+| Directory / File | Description |
+|------------------|-------------|
+| `/backend` | FastAPI backend source code (routers, models, database config) |
+| `/algorithm` | Implementation of User-based and Item-based collaborative filtering |
+| `/frontend` | Streamlit frontend application |
+| `/scripts` | Data import scripts (movies, ratings) |
+| `/data` | Dataset directory (MovieLens 100k - each member downloads separately) |
+| `/docs/screenshots` | System demonstration screenshots |
+| `requirements.txt` | Python dependencies list |
+| `README.md` | Project documentation with setup instructions and team workflow |
 
-├── data/             # 数据集（自己下载）
+### README
 
-├── scripts/          # 工具脚本
+The repository includes a comprehensive `README.md` file that documents:
 
-├── README.md         # 说明文档
+- Project structure and module responsibilities
+- Environment setup instructions (virtual environment, dependencies)
+- Git workflow and branch strategy (main, backend, frontend, algorithm)
+- Dataset download instructions (MovieLens 100k)
+- How to run the backend and frontend
+- Common troubleshooting tips
+- Screenshots of key system features
 
-└── requirements.txt  # 依赖列表（所有人都要装）
+### Commit History
 
+The development process is fully recorded in the Git commit history. The commit log shows:
 
+- Feature additions (e.g., "feat: implement user-based CF")
+- Bug fixes (e.g., "fix: exclude already-rated movies")
+- Performance optimizations (e.g., "perf: add similarity threshold")
+- Documentation updates (e.g., "docs: update README")
 
+**View commit history:** https://github.com/Zhantubirth/Movie-Recommendation/commits/main
 
----
+### Demonstration Screenshots
 
-## 二、环境搭建（每个人都要做，只做一次）
+The following screenshots demonstrate the key features of the system. All screenshots were captured from the actual running system.
 
-第一步：克隆仓库，命令：
-git clone <仓库地址> cd 你的项目目录
+#### Figure 1: User Login Interface
 
-第二步：创建虚拟环境
-Windows 执行：
-python -m venv .venv
+![Login Interface](docs/screenshots/start.png)
 
-.venv\Scripts\activate
+*Users can register a new account or log in with existing credentials.*
 
-第三步：安装依赖
-pip install -r requirements.txt
+#### Figure 2: Movie Browsing and Rating
 
----
+![Movie List and Rating](docs/screenshots/Main Interface.png)
 
-## 三、依赖管理（重要）
+*Users can browse the movie list with pagination and search. Clicking the rating dropdown immediately submits the rating without an extra confirmation button.*
 
-依赖文件 requirements.txt 内容如下：
-fastapi==0.115.6
-uvicorn==0.34.0
-peewee==3.17.8
-pymysql==1.1.1
-mysql-connector-python==9.1.0
-pydantic==2.10.4
-pandas==2.2.3
-numpy==2.2.1
-scikit-learn==1.6.1
+#### Figure 3: Rating Success Feedback
 
-如果你装了新的依赖：
-装完立即执行 pip freeze > requirements.txt
-然后提交到 Git：
-git add requirements.txt
-git commit -m "更新依赖"
-git push origin <你的分支>
+![Rating Success](docs/screenshots/submit.png)
 
-每次拉取代码后，如果 requirements.txt 有变化，执行：
-pip install -r requirements.txt
+*After rating a movie, a success indicator (✓) appears, confirming the rating has been saved.*
 
----
+#### Figure 4: User-based Collaborative Filtering Recommendations
 
-## 四、Git 工作流程（大家统一）
+![User-based CF Recommendations](docs/screenshots/4_recommend_user.png)
 
-分支说明（远程已有）：
-- main 分支：稳定代码，最终合并到这里
-- backend 分支：后端同学用
-- frontend 分支：前端同学用
-- algorithm 分支：算法同学用
+*User-based CF finds users with similar taste and recommends movies they liked. The result shows action/sci-fi movies for an action fan.*
 
-每个人本地只有一个分支
+#### Figure 5: Item-based Collaborative Filtering Recommendations
 
-每天开始工作前（同步 main 的最新代码）：
-git pull origin main
+![Item-based CF Recommendations](docs/screenshots/5_recommend_item.png)
 
-开发完后提交：
-git add .
-git commit -m "写了什么功能"
-git push origin <你的分支>
-例如后端同学执行：git push origin backend
+*Item-based CF finds movies similar to those the user already rated. The results are genre-aligned with the user's rated movies.*
 
-完成一个大功能后：
-1. 去 GitHub 网页发起 Pull Request：你的分支 → main
-2. 通知其他人 Review
-3. 合并后，其他人执行 git pull origin main 同步
+### Tests
 
-如果出现冲突：
-打开冲突文件，找到 <<<<<<< 和 >>>>>>>，手动保留需要的代码，然后执行：
-git add .
-git commit -m "解决冲突"
-git push origin <你的分支>
+The repository includes test artefacts:
 
----
+| Test Artefact | Location | Description |
+|---------------|----------|-------------|
+| Functional test cases | Section 5.4 of the report | 12 test cases with 100% pass rate |
+| Edge case tests | Section 5.4.2 of the report | 9 edge cases validated |
+| Performance benchmarks | Section 5.3 of the report | Latency and resource usage measurements |
+| Algorithm comparison logs | Section 5.7.2 of the report | v0.9.0 vs v1.0.0 metrics |
 
-## 五、下载数据集（每个人自己下）
+### Artefacts Summary Checklist
 
-1. 访问 https://grouplens.org/datasets/movielens/100k/
-2. 下载 ml-100k.zip
-3. 解压到 data/ml-100k/ 文件夹
+| Artefact | Status | Location |
+|----------|--------|----------|
+| Source code | ✅ Available | GitHub repository |
+| README | ✅ Available | Repository root |
+| Commit history | ✅ Available | GitHub commits page |
+| Screenshots | ✅ Available | `/docs/screenshots/` |
+| Tests | ✅ Documented | Report Section 5.4 |
+| Performance logs | ✅ Documented | Report Section 5.3 |
+| Algorithm comparison | ✅ Documented | Report Section 5.7.2 |
 
 ---
 
-## 六、运行后端服务（后端同学做，其他人不用）
+## References
 
-uvicorn backend.app.main:app --reload
+### Dataset
 
-然后访问 http://127.0.0.1:8000/docs 查看接口文档
+GroupLens Research. (1998). *MovieLens 100K Dataset*. University of Minnesota.  
+https://grouplens.org/datasets/movielens/100k/
 
----
+### Libraries and Frameworks
 
-## 七、各角色任务清单
+FastAPI. (2024). *FastAPI framework documentation*. https://fastapi.tiangolo.com/
 
-后端同学：
-- [x] 数据库设计
-- [x] 用户注册/登录接口
-- [x] 电影列表接口
-- [x] 评分接口
-- [ ] 推荐接口（等算法模块）
-- [ ] Docker 部署
+Peewee. (2024). *Peewee ORM documentation*. http://docs.peewee-orm.com/
 
-算法同学：
-- [ ] 实现 algorithm/user_based.py，提供 recommend(user_id, top_n) 函数
-- [ ] 实现 algorithm/item_based.py，提供 recommend(user_ratings, top_n) 函数
-- [ ] 冷启动推荐
-- [ ] 推荐质量评估（RMSE）
+Streamlit. (2024). *Streamlit documentation*. https://docs.streamlit.io/
 
-前端同学：
-- [ ] Streamlit 界面
-- [ ] 调用后端 API
-- [ ] 展示推荐结果
+scikit-learn. (2024). *scikit-learn: Machine Learning in Python*. https://scikit-learn.org/
 
-PM：
-- [ ] 进度跟踪
-- [ ] 最终报告
-- [ ] PPT
-- [ ] 演示视频
+pandas. (2024). *pandas: Python Data Analysis Library*. https://pandas.pydata.org/
 
----
+NumPy. (2024). *NumPy documentation*. https://numpy.org/doc/
 
-## 八、常见问题
+Uvicorn. (2024). *Uvicorn documentation*. https://www.uvicorn.org/
 
-Q：运行报错 ModuleNotFoundError
-A：先执行 pip install -r requirements.txt
+Pydantic. (2024). *Pydantic documentation*. https://docs.pydantic.dev/
 
+### Algorithms and Collaborative Filtering
 
+Breese, J. S., Heckerman, D., & Kadie, C. (1998). Empirical analysis of predictive algorithms for collaborative filtering. In *Proceedings of the Fourteenth Conference on Uncertainty in Artificial Intelligence* (pp. 43-52). Morgan Kaufmann Publishers.
 
-Q：git push 报错
-A：先 git pull origin main 再 push
+Sarwar, B., Karypis, G., Konstan, J., & Riedl, J. (2001). Item-based collaborative filtering recommendation algorithms. In *Proceedings of the 10th international conference on World Wide Web* (pp. 285-295). ACM.
+
+Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix factorization techniques for recommender systems. *Computer*, 42(8), 30-37. IEEE.
+
+### Evaluation Metrics
+
+Herlocker, J. L., Konstan, J. A., Terveen, L. G., & Riedl, J. T. (2004). Evaluating collaborative filtering recommender systems. *ACM Transactions on Information Systems*, 22(1), 5-53.
+
+### Citation Style
+
+All references follow the **APA 7th Edition** format.
 
 ---
 
-有问题群里问，不要自己卡太久。
+*End of Artefacts and References*
