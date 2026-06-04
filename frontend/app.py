@@ -9,6 +9,7 @@ from pathlib import Path
 # ==================== Configuration ====================
 API_BASE_URL = "http://localhost:8000/api"
 CREDENTIALS_FILE = Path("user_credentials.json")
+LAST_LOGIN_KEY = "__last_login_username"
 
 # Page configuration
 st.set_page_config(
@@ -33,6 +34,7 @@ def save_credentials(username, password):
     """Save username and password"""
     credentials = load_saved_credentials()
     credentials[username] = password
+    credentials[LAST_LOGIN_KEY] = username
     with open(CREDENTIALS_FILE, 'w', encoding='utf-8') as f:
         json.dump(credentials, f, ensure_ascii=False, indent=2)
 
@@ -41,6 +43,15 @@ def get_saved_password(username):
     credentials = load_saved_credentials()
     return credentials.get(username, "")
 
+def get_last_login_username():
+    """Get the most recently saved login username"""
+    credentials = load_saved_credentials()
+    last_username = credentials.get(LAST_LOGIN_KEY, "")
+    if last_username and last_username in credentials:
+        return last_username
+    saved_users = [username for username in credentials.keys() if username != LAST_LOGIN_KEY]
+    return saved_users[-1] if saved_users else ""
+
 # ==================== Initialize Session State ====================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -48,8 +59,6 @@ if "user_id" not in st.session_state:
     st.session_state.user_id = None
 if "username" not in st.session_state:
     st.session_state.username = None
-if "algorithm" not in st.session_state:
-    st.session_state.algorithm = "user"
 if "recommendations" not in st.session_state:
     st.session_state.recommendations = []
 if "current_page" not in st.session_state:
@@ -58,8 +67,6 @@ if "user_ratings" not in st.session_state:
     st.session_state.user_ratings = {}
 if "rating_pending" not in st.session_state:
     st.session_state.rating_pending = {}
-if "remember_me" not in st.session_state:
-    st.session_state.remember_me = False
 
 # ==================== Helper Functions ====================
 def call_api(method: str, endpoint: str, data=None, params=None):
@@ -111,14 +118,14 @@ def get_user_ratings(user_id):
     return call_api("GET", f"/ratings/{user_id}")
 
 
-def get_recommendations(user_id, algorithm, top_n=10):
+def get_recommendations(user_id, top_n=10):
     """Get recommendations"""
-    params = {"user_id": user_id, "algorithm": algorithm, "top_n": top_n}
+    params = {"user_id": user_id, "top_n": top_n}
     return call_api("GET", "/recommend", params=params)
 
 
 def refresh_cache():
-    """Refresh algorithm cache"""
+    """Refresh recommendation cache"""
     return call_api("POST", "/recommend/refresh")
 
 
@@ -127,6 +134,7 @@ def login_user(username, password):
     result, err = call_api("POST", "/user/login",
                            data={"username": username, "password": password})
     if result and result.get("code") == 200:
+        save_credentials(username, password)
         st.session_state.logged_in = True
         st.session_state.user_id = result["user_id"]
         st.session_state.username = result["username"]
@@ -158,8 +166,7 @@ with st.sidebar:
         tab1, tab2 = st.tabs(["Login", "Register"])
 
         with tab1:
-            saved_users = list(load_saved_credentials().keys())
-            default_user = saved_users[0] if saved_users else ""
+            default_user = get_last_login_username()
             
             login_username = st.text_input(
                 "Username", 
@@ -177,14 +184,8 @@ with st.sidebar:
                 value=saved_password
             )
             
-            remember_me = st.checkbox("Remember me", value=st.session_state.remember_me, key="remember_checkbox")
-            
             if st.button("Login", type="primary", use_container_width=True, key="login_btn"):
                 if login_username and login_password:
-                    if remember_me:
-                        save_credentials(login_username, login_password)
-                    st.session_state.remember_me = remember_me
-                    
                     err = login_user(login_username, login_password)
                     if err:
                         st.error(err)
@@ -206,8 +207,6 @@ with st.sidebar:
                                            data={"username": reg_username, "password": reg_password})
                     if result and result.get("code") == 200:
                         st.success("Registration successful! Please login")
-                        if st.session_state.remember_me:
-                            save_credentials(reg_username, reg_password)
                         st.rerun()
                     else:
                         st.error(err or "Registration failed. Username may already exist")
@@ -215,20 +214,6 @@ with st.sidebar:
     else:
         st.success(f"👤 Current User: **{st.session_state.username}**")
         st.info(f"🆔 User ID: `{st.session_state.user_id}`")
-
-        st.markdown("---")
-
-        algorithm_options = {
-            "user": "👥 User-based (Find similar users)",
-            "item": "🎬 Item-based (Find similar movies)"
-        }
-        selected_algo = st.radio(
-            "Recommendation Algorithm",
-            options=["user", "item"],
-            format_func=lambda x: algorithm_options[x],
-            horizontal=True
-        )
-        st.session_state.algorithm = selected_algo
 
         st.markdown("---")
 
@@ -256,7 +241,7 @@ if not st.session_state.logged_in:
         </div>
         """, unsafe_allow_html=True)
 
-        st.info("💡 **Instructions**\n\n1. Login or register on the left\n2. Rate movies you've watched\n3. Select algorithm to get recommendations")
+        st.info("💡 **Instructions**\n\n1. Login or register on the left\n2. Rate movies you've watched\n3. Get recommendations")
 
 else:
     st.header(f"🎬 Welcome back, {st.session_state.username}!")
@@ -266,23 +251,22 @@ else:
     with left_col:
         st.subheader("📋 Movie List")
 
-        search_col, page_col = st.columns([3, 1])
-        with search_col:
+        search_col1, search_col2, page_col1, page_col2, page_col3 = st.columns([3, 1, 1, 2, 1])
+        with search_col1:
             search_keyword = st.text_input("🔍 Search Movies", placeholder="Enter movie title...", key="search_input", label_visibility="collapsed")
-        with page_col:
+        with search_col2:
             st.write("")
-            page_control = st.columns([1, 2, 1])
-            with page_control[0]:
-                if st.button("◀", key="prev_page", use_container_width=True):
-                    if st.session_state.current_page > 1:
-                        st.session_state.current_page -= 1
-                        st.rerun()
-            with page_control[1]:
-                st.markdown(f"<div style='text-align: center; padding-top: 8px;'>Page {st.session_state.current_page}</div>", unsafe_allow_html=True)
-            with page_control[2]:
-                if st.button("▶", key="next_page", use_container_width=True):
-                    st.session_state.current_page += 1
+        with page_col1:
+            if st.button("◀", key="prev_page", use_container_width=True):
+                if st.session_state.current_page > 1:
+                    st.session_state.current_page -= 1
                     st.rerun()
+        with page_col2:
+            st.markdown(f"<div style='text-align: center; padding-top: 8px;'>Page {st.session_state.current_page}</div>", unsafe_allow_html=True)
+        with page_col3:
+            if st.button("▶", key="next_page", use_container_width=True):
+                st.session_state.current_page += 1
+                st.rerun()
 
         with st.spinner("Loading movies..."):
             result, err = load_movies(
@@ -412,7 +396,6 @@ else:
             with st.spinner("Generating recommendations..."):
                 result, err = get_recommendations(
                     st.session_state.user_id,
-                    st.session_state.algorithm,
                     top_n
                 )
                 if result and result.get("code") == 200:
