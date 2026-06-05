@@ -1,7 +1,6 @@
 """
 Item-based 协同过滤算法
 """
-import numpy as np
 from .utils import get_rating_matrix, get_item_similarity, cold_start_recommend
 from backend.app.models import Movie
 
@@ -22,7 +21,7 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
         return cold_start_recommend(top_n, exclude_movies=set())
 
     # 2. 获取数据
-    rating_matrix, user_ids, movie_ids = get_rating_matrix()
+    rating_matrix, _, _ = get_rating_matrix()
     item_similarity, movie_id_list = get_item_similarity()
 
     # 3. 构建电影ID到索引的映射
@@ -35,11 +34,22 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
     if not rated_movies:
         return cold_start_recommend(top_n, exclude_movies=set(user_ratings.keys()))
 
-    # 5. 为每个已评分电影，找相似的电影（使用加权平均，而非简单累加）
-    scores = {}      # 存储加权评分和
+    user_mean = sum(rating for _, rating in rated_movies) / len(rated_movies)
+    movie_means = {}
+    for idx, movie_id in enumerate(movie_id_list):
+        movie_ratings = rating_matrix.iloc[:, idx]
+        movie_ratings = movie_ratings[movie_ratings > 0]
+        if not movie_ratings.empty:
+            movie_means[movie_id] = float(movie_ratings.mean())
+
+    # 5. 为每个未评分电影，累加用户对相似电影的评分偏差
+    scores = {}      # 存储加权评分偏差和
     sim_sums = {}    # 存储相似度总和
 
     for rated_movie_id, rating in rated_movies:
+        if rated_movie_id not in movie_means:
+            continue
+
         movie_idx = movie_to_idx[rated_movie_id]
         similarities = item_similarity[movie_idx]
 
@@ -52,16 +62,17 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
 
             sim = similarities[other_idx]
             if sim > 0:
-                # 累加加权评分和相似度
-                scores[other_movie_id] = scores.get(other_movie_id, 0) + sim * rating
+                baseline = movie_means.get(rated_movie_id, user_mean)
+                scores[other_movie_id] = scores.get(other_movie_id, 0) + sim * (rating - baseline)
                 sim_sums[other_movie_id] = sim_sums.get(other_movie_id, 0) + sim
 
-    # 6. 计算最终预测评分（加权平均）
+    # 6. 计算最终预测评分：候选电影均值 + 用户对相似电影的评分偏差
     final_scores = {}
-    for movie_id, weighted_sum in scores.items():
+    for movie_id, weighted_deviation in scores.items():
         if sim_sums[movie_id] > 0:
-            # 预测评分范围与原始评分一致（1-10）
-            final_scores[movie_id] = weighted_sum / sim_sums[movie_id]
+            baseline = movie_means.get(movie_id, user_mean)
+            score = baseline + weighted_deviation / sim_sums[movie_id]
+            final_scores[movie_id] = min(max(score, 1.0), 10.0)
 
     # 7. 如果没有相似电影，返回热门推荐
     if not final_scores:
@@ -112,7 +123,7 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
         # 预测评分已经在 1-10 范围内，直接使用
         # 但确保在有效范围内
         if score > 0:
-            predicted_rating = min(max(round(score, 1), 1.0), 10.0)
+            predicted_rating = float(min(max(round(score, 1), 1.0), 10.0))
         else:
             predicted_rating = None
 

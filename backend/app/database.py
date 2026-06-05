@@ -1,9 +1,10 @@
+import pymysql
 from peewee import MySQLDatabase
 
 db = MySQLDatabase(
-    'movie_recommendation', # 数据库名
+    'movie recommendation', # 数据库名
     user='root',
-    password='zyh790201',
+    password='123456',
     host='localhost',
     port=3306
 )

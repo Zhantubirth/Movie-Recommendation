@@ -3,13 +3,11 @@
 """
 import pandas as pd
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 from backend.app.models import Rating, Movie
 from peewee import fn
 
 # 全局缓存（启动后只加载一次）
 _rating_matrix = None
-_user_similarity = None
 _item_similarity = None
 _user_ids = None
 _movie_ids = None
@@ -17,7 +15,7 @@ _movie_ids = None
 
 def load_data():
     """从数据库加载评分数据，构建评分矩阵（使用皮尔逊相似度）"""
-    global _rating_matrix, _user_similarity, _item_similarity, _user_ids, _movie_ids
+    global _rating_matrix, _item_similarity, _user_ids, _movie_ids
 
     print("正在加载评分数据...")
     users = Rating.select(Rating.user_id).distinct()
@@ -35,11 +33,6 @@ def load_data():
 
     _rating_matrix = pd.DataFrame(data, index=_user_ids, columns=_movie_ids).fillna(0).astype(float)
 
-    # 使用皮尔逊相关系数替代余弦相似度（解决稀疏问题）
-    print("正在计算用户相似度矩阵（Pearson）...")
-    matrix_values = _rating_matrix.values
-    _user_similarity = pearson_similarity(matrix_values)
-
     print("正在计算物品相似度矩阵（Pearson）...")
     item_matrix = _rating_matrix.T.values
     _item_similarity = pearson_similarity(item_matrix)
@@ -51,13 +44,6 @@ def get_rating_matrix():
     if _rating_matrix is None:
         load_data()
     return _rating_matrix, _user_ids, _movie_ids
-
-
-def get_user_similarity():
-    """获取用户相似度矩阵"""
-    if _user_similarity is None:
-        load_data()
-    return _user_similarity, _user_ids
 
 
 def get_item_similarity():
@@ -133,21 +119,15 @@ def pearson_similarity(matrix):
                 continue
             vec_i = matrix[i][mask]
             vec_j = matrix[j][mask]
-            if np.std(vec_i) == 0 or np.std(vec_j) == 0:
-                sim[i, j] = 0.0
-                continue
             # 计算皮尔逊相关系数
             corr = np.corrcoef(vec_i, vec_j)[0, 1]
             sim[i, j] = corr if not np.isnan(corr) else 0.0
     return sim
 
-# 在 algorithm/utils.py 末尾添加
-
 def refresh_data():
     """强制刷新数据缓存"""
-    global _rating_matrix, _user_similarity, _item_similarity, _user_ids, _movie_ids
+    global _rating_matrix, _item_similarity, _user_ids, _movie_ids
     _rating_matrix = None
-    _user_similarity = None
     _item_similarity = None
     _user_ids = None
     _movie_ids = None
