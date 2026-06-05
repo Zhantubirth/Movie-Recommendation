@@ -94,6 +94,7 @@ def recommend(user_id: int, top_n: int = 10) -> list:
         # 重新排序（补充的热门电影排在后面）
         sorted_predictions.sort(key=lambda x: x[1], reverse=True)
 
+
     sorted_predictions = sorted_predictions[:top_n]
 
     # 10. 构建返回结果（确保没有重复）
