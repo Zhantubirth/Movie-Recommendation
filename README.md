@@ -141,7 +141,7 @@ The following screenshots demonstrate the key features of the system. All screen
 
 #### Figure 2: Movie Browsing and Rating
 
-![Movie List and Rating](docs/screenshots/Main Interface.png)
+![Movie List and Rating](docs/screenshots/MainInterface.png)
 
 *Users can browse the movie list with pagination and search. Rated movies are prioritised in the list, and users can submit or update ratings directly from the interface.*
 
