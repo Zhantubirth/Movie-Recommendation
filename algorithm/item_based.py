@@ -1,3 +1,4 @@
+#author:Qiangyou Zheng,Yifu Chen
 """
 Item-based 协同过滤算法
 """

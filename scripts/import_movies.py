@@ -1,3 +1,4 @@
+#author:Yaohang Zhong
 """
 电影数据导入脚本
 将 MovieLens 100k 数据集中的电影信息导入 MySQL
@@ -136,7 +137,7 @@ def test_import():
 
 if __name__ == "__main__":
     # 修改为你的 u.item 文件实际路径
-    DATA_PATH = r"C:\Users\LIANXIANG\Desktop\ml-100k\ml-100k\u.item"
+    DATA_PATH = r"C:\Users\pluck\Desktop\ml-100k\u.item"
 
     # 检查文件是否存在
     if not os.path.exists(DATA_PATH):

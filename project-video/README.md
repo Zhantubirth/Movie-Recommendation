@@ -4,6 +4,7 @@
 
 ### Source Code Repository
 
+### Author:Yaohang Zhong
 The complete source code of the Movie Recommendation System is hosted on GitHub and is publicly accessible.
 
 **Repository URL:** https://github.com/Zhantubirth/Movie-Recommendation.git
