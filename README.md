@@ -135,19 +135,19 @@ The following screenshots demonstrate the key features of the system. All screen
 
 #### Figure 1: User Login Interface
 
-![Login Interface](docs/screenshots/start.png)
+![Login Interface](project-video/evidence/start.png)
 
 *Users can register a new account or log in with existing credentials.*
 
 #### Figure 2: Movie Browsing and Rating
 
-![Movie List and Rating](docs/screenshots/MainInterface.png)
+![Movie List and Rating](project-video/evidence/MainInterface.png)
 
 *Users can browse the movie list with pagination and search. Rated movies are prioritised in the list, and users can submit or update ratings directly from the interface.*
 
 #### Figure 3: Rating Success Feedback
 
-![Rating Success](docs/screenshots/submit.png)
+![Rating Success](project-video/evidence/submit.png)
 
 *After rating a movie, the interface displays feedback confirming that the rating has been saved.*
 
