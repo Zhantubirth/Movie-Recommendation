@@ -13,7 +13,7 @@ _item_similarity = None
 _user_ids = None
 _movie_ids = None
 
-#author:Qiangyou Zheng
+#author:Yifu Chen
 def load_data():
     """从数据库加载评分数据，构建评分矩阵（使用皮尔逊相似度）"""
     global _rating_matrix, _item_similarity, _user_ids, _movie_ids
@@ -103,6 +103,17 @@ def cold_start_recommend(top_n: int = 10, exclude_movies: set = None) -> list:
 
     return result[:top_n]
 
+#author:Yifu Chen
+def refresh_data():
+    """强制刷新数据缓存"""
+    global _rating_matrix, _item_similarity, _user_ids, _movie_ids
+    _rating_matrix = None
+    _item_similarity = None
+    _user_ids = None
+    _movie_ids = None
+    load_data()
+    print("数据缓存已刷新")
+
 #author:Qiangyou Zheng
 def pearson_similarity(matrix):
     """计算皮尔逊相关系数矩阵（处理稀疏数据更准确）"""
@@ -124,13 +135,3 @@ def pearson_similarity(matrix):
             corr = np.corrcoef(vec_i, vec_j)[0, 1]
             sim[i, j] = corr if not np.isnan(corr) else 0.0
     return sim
-#author:Qiangyou Zheng
-def refresh_data():
-    """强制刷新数据缓存"""
-    global _rating_matrix, _item_similarity, _user_ids, _movie_ids
-    _rating_matrix = None
-    _item_similarity = None
-    _user_ids = None
-    _movie_ids = None
-    load_data()
-    print("数据缓存已刷新")
