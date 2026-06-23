@@ -1,4 +1,4 @@
-#author:Yaohang Zhong
+#The author of all functions in this module:Yaohang Zhong
 from fastapi import APIRouter, HTTPException
 from ..models import Rating
 from pydantic import BaseModel

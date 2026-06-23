@@ -1,4 +1,4 @@
-#author:Yaohang Zhong
+#The author of all functions in this module:Yaohang Zhong
 from fastapi import APIRouter, HTTPException, Query
 from ..models import Movie, Rating
 

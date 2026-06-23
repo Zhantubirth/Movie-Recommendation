@@ -1,4 +1,4 @@
-#author:Yaohang Zhong
+#The author of all functions in this module:Yaohang Zhong
 from fastapi import APIRouter, Query
 from algorithm.utils import refresh_data
 from backend.app.models import Rating
@@ -30,6 +30,6 @@ def get_recommendations(
 
 @router.post("/refresh")
 def refresh_cache():
-    """手动刷新算法缓存（当有新评分时调用）"""
+    """手动刷新算法缓存"""
     refresh_data()
     return {"code": 200, "message": "缓存已刷新"}

@@ -1,4 +1,4 @@
-#author:Qiangyou Zheng,Yifu Chen
+#The authors of all functions in this module: Qiangyou Zheng,Yifu Chen
 """
 算法工具函数：加载数据、计算相似度等
 """
@@ -13,7 +13,7 @@ _item_similarity = None
 _user_ids = None
 _movie_ids = None
 
-
+#author:Qiangyou Zheng
 def load_data():
     """从数据库加载评分数据，构建评分矩阵（使用皮尔逊相似度）"""
     global _rating_matrix, _item_similarity, _user_ids, _movie_ids
@@ -39,21 +39,21 @@ def load_data():
     _item_similarity = pearson_similarity(item_matrix)
 
     print(f"数据加载完成: {len(_user_ids)} 个用户, {len(_movie_ids)} 部电影")
-
+#author:Yifu Chen
 def get_rating_matrix():
     """获取评分矩阵"""
     if _rating_matrix is None:
         load_data()
     return _rating_matrix, _user_ids, _movie_ids
 
-
+#author:Yifu Chen
 def get_item_similarity():
     """获取物品相似度矩阵"""
     if _item_similarity is None:
         load_data()
     return _item_similarity, _movie_ids
 
-
+#author:Yifu Chen
 def cold_start_recommend(top_n: int = 10, exclude_movies: set = None) -> list:
     """冷启动推荐：返回评分次数最多的热门电影
     参数:
@@ -103,7 +103,7 @@ def cold_start_recommend(top_n: int = 10, exclude_movies: set = None) -> list:
 
     return result[:top_n]
 
-
+#author:Qiangyou Zheng
 def pearson_similarity(matrix):
     """计算皮尔逊相关系数矩阵（处理稀疏数据更准确）"""
     n = matrix.shape[0]
@@ -124,7 +124,7 @@ def pearson_similarity(matrix):
             corr = np.corrcoef(vec_i, vec_j)[0, 1]
             sim[i, j] = corr if not np.isnan(corr) else 0.0
     return sim
-
+#author:Qiangyou Zheng
 def refresh_data():
     """强制刷新数据缓存"""
     global _rating_matrix, _item_similarity, _user_ids, _movie_ids

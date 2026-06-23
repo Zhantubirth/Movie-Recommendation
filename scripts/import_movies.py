@@ -1,8 +1,7 @@
-#author:Yaohang Zhong
+#The author of all functions in this module:Yaohang Zhong
 """
 电影数据导入脚本
 将 MovieLens 100k 数据集中的电影信息导入 MySQL
-修正：将 genres 从数字标识改为实际类型名称
 """
 
 import csv
@@ -136,7 +135,7 @@ def test_import():
 
 
 if __name__ == "__main__":
-    # 修改为你的 u.item 文件实际路径
+    # 注意修改为 u.item 文件实际路径
     DATA_PATH = r"C:\Users\pluck\Desktop\ml-100k\u.item"
 
     # 检查文件是否存在

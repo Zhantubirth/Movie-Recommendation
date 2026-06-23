@@ -1,4 +1,4 @@
-#author:Yaohang Zhong
+#The author of all functions in this module:Yaohang Zhong
 import pymysql
 from peewee import MySQLDatabase
 
@@ -11,5 +11,5 @@ db = MySQLDatabase(
 )
 
 def get_db_connection():
-    """返回数据库连接对象（用于需要原生连接的地方）"""
+    """返回数据库连接对象"""
     return db.connection()

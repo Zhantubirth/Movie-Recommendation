@@ -1,4 +1,4 @@
-#author:Yaohang Zhong
+#The author of all functions in this module:Yaohang Zhong
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from ..models import User
@@ -20,7 +20,6 @@ class UserLogin(BaseModel):
 # 注册
 @router.post("/register")
 def register(user: UserCreate):
-    # Pydantic 已经校验了用户名和密码不为空，这里不需要再写 if
 
     # 检查用户名是否已存在
     if User.select().where(User.username == user.username).exists():

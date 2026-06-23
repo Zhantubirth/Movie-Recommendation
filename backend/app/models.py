@@ -1,4 +1,4 @@
-#author:Yaohang Zhong
+#The author of all functions in this module:Yaohang Zhong
 from peewee import *
 from datetime import datetime
 from .database import db

@@ -1,4 +1,4 @@
-#author:Qiangyou Zheng,Yifu Chen
+#The authors of all functions in this module: Qiangyou Zheng,Yifu Chen
 """
 Item-based 协同过滤算法
 """
