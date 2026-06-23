@@ -1,3 +1,4 @@
+#author:Qiangyou Zheng,Yifu Chen
 """
 算法工具函数：加载数据、计算相似度等
 """
