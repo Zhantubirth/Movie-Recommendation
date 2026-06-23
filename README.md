@@ -56,7 +56,7 @@ The following screenshots demonstrate the key features of the system. All screen
 
 #### Figure 2: Movie Browsing and Rating
 
-![Movie List and Rating](docs/screenshots/Main Interface.png)
+![Movie List and Rating](docs/screenshots/Main%20Interface.png)
 
 *Users can browse the movie list with pagination and search. Clicking the rating dropdown immediately submits the rating without an extra confirmation button.*
 
