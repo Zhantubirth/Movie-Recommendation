@@ -43,6 +43,7 @@ def get_movies(
 
     # Build return data
     movies_data = []
+    #遍历：traverse
     for m in movies:
         movie_dict = {
             "id": m.id, 

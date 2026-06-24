@@ -29,7 +29,7 @@ def create_rating(rating_data: RatingCreate):
         rating, created = Rating.get_or_create(
             user_id=rating_data.user_id,
             movie_id=rating_data.movie_id,
-            defaults={"rating": rating_data.rating}
+            defaults={"rating": rating_data.rating}#The rating field only takes effect when created, and the rating value is written in.
         )
         # 如果没新建（说明之前已经评过分），就更新评分
         # If not created (user already rated this movie), update the rating

@@ -4,8 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 # 创建 FastAPI 应用实例，这是整个后端的核心入口
-# Create FastAPI app instance, this is the core entry point of the backend
 # 参数只是给 API 文档页面加个标题和描述，方便查看
+# Create FastAPI app instance, this is the core entry point of the backend
 # Parameters are just for the API docs page title and description
 app = FastAPI(
     title="电影推荐系统 API",

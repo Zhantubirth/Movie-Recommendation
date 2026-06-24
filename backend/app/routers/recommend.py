@@ -28,7 +28,7 @@ def get_recommendations(
 
 @router.post("/refresh")
 # 什么时候用？比如导入了新的评分数据后，需要让算法重新计算相似度矩阵
-# When to use? After importing new rating data, need to recalculate similarity matrix
+# When to use:After importing new rating data, need to recalculate similarity matrix
 def refresh_cache():
     refresh_data()
     return {"code": 200, "message": "缓存已刷新"}

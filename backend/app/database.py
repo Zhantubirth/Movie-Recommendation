@@ -12,6 +12,6 @@ db = MySQLDatabase(
     port=3306
 )
 # 封装了一个获取数据库连接的函数，其他模块可以调用来拿到连接对象
-# A helper function to get the db connection, other modules can call this
+# other modules can call this helper function to get the db connection
 def get_db_connection():
     return db.connection()

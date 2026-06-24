@@ -12,7 +12,7 @@ class BaseModel(Model):
 # 对应数据库中的 user 表，存储用户账号信息
 # Maps to the 'user' table in database, stores user account info
 class User(BaseModel):
-    id = AutoField()                  # 自增主键
+    id = AutoField() # 自增主键
     username = CharField(max_length=50, unique=True)
     password = CharField(max_length=100)
     created_at = DateTimeField(default=datetime.now)
