@@ -29,7 +29,7 @@ def register(user: UserCreate):
     # user: UserCreate 这一步，FastAPI 会自动把请求 JSON 解析成 UserCreate 对象并校验
     # FastAPI auto-parses request JSON into UserCreate object and validates it
 
-    # Execute the methods in Peewee to check if username already exists in database
+    # Execute the methods that in Peewee to check if username already existed in database
     if User.select().where(User.username == user.username).exists():
         raise HTTPException(status_code=400, detail="用户名已存在")
 
