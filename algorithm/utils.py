@@ -8,12 +8,18 @@ from backend.app.models import Rating, Movie
 from peewee import fn
 
 # 全局缓存（启动后只加载一次）
+#定义内存缓存变量，用于存储评分矩阵、物品相似度矩阵及用户/电影 ID 列表，避免重复查询数据库
+#Define in-memory cache variables for the rating matrix, item similarity matrix, and user/movie ID lists to avoid repeated database queries
+
 _rating_matrix = None
 _item_similarity = None
 _user_ids = None
 _movie_ids = None
 
 #author:Yifu Chen
+#从数据库查询评分数据（Rating.select），构建 DataFrame 评分矩阵，调用 A 的相似度计算函数，并将结果写入全局缓存
+#Query rating data from the database (Rating.select), build a DataFrame rating matrix,
+#invoke Developer A's similarity function, and populate the global cache
 def load_data():
     """从数据库加载评分数据，构建评分矩阵（使用皮尔逊相似度）"""
     global _rating_matrix, _item_similarity, _user_ids, _movie_ids
@@ -52,6 +58,9 @@ def get_item_similarity():
     if _item_similarity is None:
         load_data()
     return _item_similarity, _movie_ids
+#单例模式获取缓存：若缓存为空则触发 load_data()，再返回评分矩阵或相似度矩阵
+#Singleton-style cache access: trigger load_data() if cache is empty,
+#then return the rating matrix or item similarity matrix
 
 #author:Yifu Chen
 def cold_start_recommend(top_n: int = 10, exclude_movies: set = None) -> list:
@@ -102,6 +111,9 @@ def cold_start_recommend(top_n: int = 10, exclude_movies: set = None) -> list:
                 break
 
     return result[:top_n]
+#冷启动策略：用 SQL 聚合（fn.COUNT）统计热门电影；若结果不足，再用 Movie.select 从电影表兜底补充
+#Cold-start fallback: use SQL aggregation (fn.COUNT) to find popular movies;
+#if results are insufficient, backfill from the Movie table via Movie.select
 
 #author:Yifu Chen
 def refresh_data():
@@ -113,6 +125,9 @@ def refresh_data():
     _movie_ids = None
     load_data()
     print("数据缓存已刷新")
+#强制清空全部缓存变量并重新调用 load_data()，保证数据与数据库同步
+#Force-clear all cache variables and reload via load_data()
+#to keep data in sync with the database
 
 #author:Qiangyou Zheng
 def pearson_similarity(matrix):

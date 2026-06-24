@@ -42,6 +42,14 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
         movie_ratings = movie_ratings[movie_ratings > 0]
         if not movie_ratings.empty:
             movie_means[movie_id] = float(movie_ratings.mean())
+#1.判断用户是否无评分，若是则调用 cold_start_recommend 冷启动
+#If the user has no ratings, invoke cold_start_recommend for cold start
+#2.调用 get_rating_matrix / get_item_similarity 获取缓存数据
+#Fetch cached data via get_rating_matrix and get_item_similarity
+#3.构建 movie_to_idx 映射，将电影 ID 转为矩阵索引
+#Build movie_to_idx mapping to convert movie IDs to matrix indices
+#4.过滤用户已评电影，计算 user_mean 和 movie_means 作为后续基线
+#Filter rated movies, compute user_mean and movie_means as baselines for later steps
 
     # 5. 为每个未评分电影，累加用户对相似电影的评分偏差
     scores = {}      # 存储加权评分偏差和
@@ -136,3 +144,13 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
         })
 
     return result
+#1.若 A 计算结果为空，再次调用 cold_start_recommend 兜底
+#If Developer A's final_scores is empty, fall back to cold_start_recommend
+#2.按预测评分降序排序
+#Sort by predicted rating in descending order
+#3.推荐数量不足时，用热门电影填充并赋予较低临时分数
+#Pad with popular movies and assign a lower temporary score when results are insufficient
+#4.截取 Top N 推荐
+#Take the top N recommendations
+#5.查询 Movie 表获取标题，去重后组装 JSON（movie_id, title, predicted_rating, reason）
+#Query the Movie table for titles, deduplicate, and assemble JSON output
