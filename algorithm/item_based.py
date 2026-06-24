@@ -75,7 +75,7 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
             # 获取当前已评分电影与候选电影之间的皮尔逊相似度
             sim = similarities[other_idx]
             if sim > 0:
-                # 基线值：该已评分电影的全局均值；若无则用用户均值兜底
+                # 基线值：该已评分电影的全局均值；若无则用用户均值兜底（个人的平均评分习惯）
                 baseline = movie_means.get(rated_movie_id, user_mean)
                 # 核心公式（累加部分）：
                 #   sim * (rating - baseline)

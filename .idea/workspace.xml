@@ -4,7 +4,6 @@
     <list default="true" id="bb991871-9308-4280-9f3d-7c1bb7b44058" name="更改" comment="add more comment">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/algorithm/item_based.py" beforeDir="false" afterPath="$PROJECT_DIR$/algorithm/item_based.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/algorithm/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/algorithm/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +84,8 @@
       <workItem from="1782130405431" duration="3588000" />
       <workItem from="1782195835349" duration="9066000" />
       <workItem from="1782309049210" duration="6749000" />
-      <workItem from="1782324152637" duration="1053000" />
+      <workItem from="1782324152637" duration="1086000" />
+      <workItem from="1782326549678" duration="910000" />
     </task>
     <task id="LOCAL-00001" summary="算法优化">
       <option name="closed" value="true" />
@@ -143,7 +143,15 @@
       <option name="project" value="LOCAL" />
       <updated>1782323255035</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="add more comment">
+      <option name="closed" value="true" />
+      <created>1782325216234</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1782325216234</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
