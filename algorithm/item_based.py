@@ -55,31 +55,47 @@ def recommend(user_ratings: dict, top_n: int = 10) -> list:
     scores = {}      # 存储加权评分偏差和
     sim_sums = {}    # 存储相似度总和
 
+    # 遍历用户已评分的每一部电影，利用物品相似度矩阵预测未评分电影的得分
     for rated_movie_id, rating in rated_movies:
         if rated_movie_id not in movie_means:
             continue
 
+        # 获取当前已评分电影在相似度矩阵中的行索引和对应的相似度向量
         movie_idx = movie_to_idx[rated_movie_id]
         similarities = item_similarity[movie_idx]
 
         for other_idx, other_movie_id in enumerate(movie_id_list):
-            # 跳过自身和已评分的电影
+            # 跳过自身：一部电影与自身不需要计算推荐
             if other_movie_id == rated_movie_id:
                 continue
+            # 跳过用户已评分的电影：只预测未评分的电影
             if other_movie_id in user_ratings:
                 continue
 
+            # 获取当前已评分电影与候选电影之间的皮尔逊相似度
             sim = similarities[other_idx]
             if sim > 0:
+                # 基线值：该已评分电影的全局均值；若无则用用户均值兜底
                 baseline = movie_means.get(rated_movie_id, user_mean)
+                # 核心公式（累加部分）：
+                #   sim * (rating - baseline)
+                #   = 相似度 × 用户对该电影的评分偏差（用户评分 - 电影全局均值）
+                #   偏差为正说明用户打分高于平均水平，乘以相似度后加权累加到候选电影
                 scores[other_movie_id] = scores.get(other_movie_id, 0) + sim * (rating - baseline)
+                # 累加相似度权重，用于后续归一化
                 sim_sums[other_movie_id] = sim_sums.get(other_movie_id, 0) + sim
 
     # 6. 计算最终预测评分：候选电影均值 + 用户对相似电影的评分偏差
     final_scores = {}
     for movie_id, weighted_deviation in scores.items():
         if sim_sums[movie_id] > 0:
+            # 基线值：候选电影自身的全局均值；若无则用用户均值兜底
             baseline = movie_means.get(movie_id, user_mean)
+            # 最终预测公式：
+            #   score = 候选电影全局均值 + (加权偏差和 / 相似度总和)
+            #   含义：在候选电影自身平均水平的基础上，
+            #   根据用户对其相似电影的评分偏差进行修正
+            #   偏差越大（用户偏好与这些相似电影越契合），预测分越高
             score = baseline + weighted_deviation / sim_sums[movie_id]
             final_scores[movie_id] = min(max(score, 1.0), 10.0)
 

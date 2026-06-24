@@ -131,21 +131,42 @@ def refresh_data():
 
 #author:Qiangyou Zheng
 def pearson_similarity(matrix):
-    """计算皮尔逊相关系数矩阵（处理稀疏数据更准确）"""
-    n = matrix.shape[0]
-    sim = np.zeros((n, n))
+    """
+    计算皮尔逊相关系数矩阵（处理稀疏数据更准确）
+
+    参数:
+        matrix: numpy 二维数组，形状为 (n_movies, n_users)
+                每一行代表一部电影对所有用户的评分向量，0 表示未评分
+
+    返回:
+        sim: numpy 二维数组，形状为 (n_movies, n_movies)
+             sim[i][j] 表示电影 i 与电影 j 之间的皮尔逊相关系数
+             取值范围 [-1.0, 1.0]，1 表示完全正相关，-1 表示完全负相关，0 表示无相关性
+    """
+    n = matrix.shape[0]          # 获取电影总数（矩阵行数）
+    sim = np.zeros((n, n))       # 初始化 n×n 的相似度矩阵，默认值为 0
+
+    # 双重循环：逐对计算任意两部电影之间的皮尔逊相关系数
     for i in range(n):
         for j in range(n):
             if i == j:
                 sim[i, j] = 1.0
                 continue
-            # 找到两者都有评分的维度
+
+            # 情况2：计算电影 i 和电影 j 的相似度
+            # 构建掩码（mask）：找出同时对电影 i 和电影 j 都评过分的用户
+            # matrix[i] != 0 表示该用户对电影 i 有评分
+            # matrix[j] != 0 表示该用户对电影 j 有评分
+            # 两者取交集（&），即只保留对两部电影都有评分的用户
             mask = (matrix[i] != 0) & (matrix[j] != 0)
+
+            # 如果共同评分的用户数少于 2 个，无法计算有意义的相关系数
+            # （皮尔逊系数至少需要 2 个数据点才能计算标准差）
             if np.sum(mask) < 2:
                 sim[i, j] = 0.0
                 continue
-            vec_i = matrix[i][mask]
-            vec_j = matrix[j][mask]
+            vec_i = matrix[i][mask] # 电影 i 在共同评分用户上的评分
+            vec_j = matrix[j][mask] # 电影 j 在共同评分用户上的评分
             # 计算皮尔逊相关系数
             corr = np.corrcoef(vec_i, vec_j)[0, 1]
             sim[i, j] = corr if not np.isnan(corr) else 0.0
